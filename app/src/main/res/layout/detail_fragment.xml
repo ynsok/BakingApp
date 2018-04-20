@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/TextView_DetailIngredients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/card_textView_16"
+        android:padding="24dp"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:text="@string/recipe_ingredients"
+        android:textSize="@dimen/card_textView_24sp"
+        android:textStyle="italic"
+        android:typeface="serif" />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="serif"
+        android:text="@string/step_by_step_how_to_make_this"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        tools:targetApi="jelly_bean" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recylerView_DetailActivity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

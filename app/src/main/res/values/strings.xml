@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Baking</string>
+    <string name="step_by_step_how_to_make_this">Step by Step How to make this</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="recipe_ingredients">Recipe Ingredients</string>
+    <string name="skip_to_next">Next</string>
+    <string name="skip_to_previous">Back</string>
+
+</resources>
