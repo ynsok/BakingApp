@@ -6,11 +6,12 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.widget.Toast;
+import android.view.View;
+import android.widget.LinearLayout;
 
 import com.example.android.baking.ModelData.BakingModelData;
 import com.example.android.baking.RecylerAdapters.Adapter_MainActivity;
@@ -43,6 +44,10 @@ public class MainActivity extends AppCompatActivity implements StartNewActivity 
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.recyclerView_MainActivity)
     RecyclerView mRecyclerViewMainActivity;
+    @BindView(R.id.activity_layout)
+    LinearLayout mLinearLayout;
+    private LinearLayoutManager mLinear;
+    private final static String ADAPTER_POSITION = "adapter position";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,41 +57,70 @@ public class MainActivity extends AppCompatActivity implements StartNewActivity 
 
         mDataKeeper = new DataKeeper();
         implementViews();
-        getBakingDataFromNetw();
+        final int postion;
+        if (savedInstanceState != null) {
+            postion = savedInstanceState.getInt(ADAPTER_POSITION);
+        } else {
+            postion = -1;
+        }
+
+        if (checkNet()) {
+            getBakingDataFromNetw(postion);
+        } else {
+            Snackbar snackbar = Snackbar.make(mLinearLayout, R.string.checkConnection, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.Retry, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            getBakingDataFromNetw(postion);
+
+                        }
+                    });
+            snackbar.show();
+        }
+
 
     }
 
 
-    private void getBakingDataFromNetw() {
-        if (checkNet()) {
-            Service service = RetrofitClass.getServiceCall();
+    private void getBakingDataFromNetw(final int position) {
 
-            Call<JsonArray> getBakingData = service.getBakingList();
-            getBakingData.enqueue(new Callback<JsonArray>() {
-                @Override
-                public void onResponse(@NonNull Call<JsonArray> call, @NonNull Response<JsonArray> response) {
+        Service service = RetrofitClass.getServiceCall();
 
-
-                    @SuppressWarnings("ConstantConditions") String jsonResponse = response.body().toString();
-
-                    Type mBakingType = new TypeToken<List<BakingModelData>>() {
-                    }.getType();
-                    mBakingData = getIngredientsFromJson(mBakingType, jsonResponse);
-                    mAdapterMainActivity.getBakingData(mBakingData);
-                    mDataKeeper.takeData(mBakingData);
+        Call<JsonArray> getBakingData = service.getBakingList();
+        getBakingData.enqueue(new Callback<JsonArray>() {
+            @Override
+            public void onResponse(@NonNull Call<JsonArray> call, @NonNull Response<JsonArray> response) {
 
 
+                @SuppressWarnings("ConstantConditions") String jsonResponse = response.body().toString();
+
+                Type mBakingType = new TypeToken<List<BakingModelData>>() {
+                }.getType();
+                mBakingData = getIngredientsFromJson(mBakingType, jsonResponse);
+                mAdapterMainActivity.getBakingData(mBakingData);
+                mDataKeeper.takeData(mBakingData);
+                if (position != -1) {
+                    mLinear.scrollToPosition(position);
                 }
 
-                @Override
-                public void onFailure(@NonNull Call<JsonArray> call, @NonNull Throwable t) {
-                    Log.i(TAG, "onFailure: " + call.toString() + t.getMessage());
 
-                }
-            });
-        } else {
-            Toast.makeText(this, "Check Connection", Toast.LENGTH_SHORT).show();
-        }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<JsonArray> call, @NonNull Throwable t) {
+
+                Snackbar snackbar = Snackbar.make(mLinearLayout, R.string.checkConnection, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.Retry, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                getBakingDataFromNetw(position);
+
+                            }
+                        });
+                snackbar.show();
+            }
+
+        });
 
 
     }
@@ -114,7 +148,8 @@ public class MainActivity extends AppCompatActivity implements StartNewActivity 
     }
 
     private void implementViews() {
-        mRecyclerViewMainActivity.setLayoutManager(new LinearLayoutManager(this));
+        mLinear = new LinearLayoutManager(this);
+        mRecyclerViewMainActivity.setLayoutManager(mLinear);
         mRecyclerViewMainActivity.setHasFixedSize(true);
         mAdapterMainActivity = new Adapter_MainActivity(this, this);
         mRecyclerViewMainActivity.setAdapter(mAdapterMainActivity);
@@ -127,5 +162,14 @@ public class MainActivity extends AppCompatActivity implements StartNewActivity 
         intent.putExtra(POSITION, position);
         intent.putExtra(NAME, name);
         startActivity(intent);
+    }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putInt(ADAPTER_POSITION, mLinear.findLastCompletelyVisibleItemPosition());
+
     }
 }

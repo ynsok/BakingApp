@@ -51,7 +51,7 @@ public class Adapter_MainActivity extends RecyclerView.Adapter<Adapter_MainActiv
         String nameOfBaking = mBakingAdapterData.get(position).getName();
         holder.mTextViewCard.setText(nameOfBaking);
         String photoURI = mBakingAdapterData.get(position).getImage();
-        if (photoURI == null || photoURI.isEmpty()) {
+        if (photoURI.isEmpty()) {
             Picasso
                     .with(context)
                     .load(R.drawable.pobrane)

@@ -128,15 +128,16 @@ public class DetailActivity extends AppCompatActivity implements DetailFragment.
 
     private void createThePortionOfData(int id) {
         String getDesription = mStepModelData.get(id).getDescription();
-        String getURL;
+        String getURL = "";
+        String getThumbNail = "";
 
             mStepFragment =new StepFragment();
         if (!mStepModelData.get(id).getVideoURL().isEmpty()) {
             getURL = mStepModelData.get(id).getVideoURL();
-        } else if (!mStepModelData.get(id).getThumbnailURL().isEmpty()) {
-            getURL = mStepModelData.get(id).getThumbnailURL();
-        } else {
-            getURL = null;
+        }
+
+        if (!mStepModelData.get(id).getThumbnailURL().isEmpty()) {
+            getThumbNail = mStepModelData.get(id).getThumbnailURL();
         }
         boolean check = false;
 
@@ -145,7 +146,7 @@ public class DetailActivity extends AppCompatActivity implements DetailFragment.
             check = true;
         }
 
-        mStepFragment.getStepData(getDesription, getURL, check, id);
+        mStepFragment.getStepData(getDesription, getURL, check, id,getThumbNail);
 
 
 

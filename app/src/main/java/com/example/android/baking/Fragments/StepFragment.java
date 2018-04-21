@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +42,7 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -61,6 +63,7 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
     @BindView(R.id.back_fragmentStep)
     Button mBackButton;
     private SimpleExoPlayer exoPlayer;
+    private String SAVE_INSTANT = "takeVideoInstant";
 
     private final String TAG = "stepFragment";
     private String description;
@@ -71,14 +74,18 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
     private SkipToNextPosition skipToNextPosition;
     private boolean size;
     private int count;
+    private boolean mPlayState =true;
     private MediaSource mediaSource;
+    @BindView(R.id.step_ImageView)ImageView mImageView;
     private long chceckIfWork = -1;
     private ClickPreviousButton mPrevius;
+    private String mThumbnail;
 
     public StepFragment() {
         // Required empty public constructor
     }
-    public interface ClickPreviousButton{
+
+    public interface ClickPreviousButton {
         void clickPreviousButton();
     }
 
@@ -160,7 +167,7 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
 
         ButterKnife.bind(this, view);
 
-        if (URL != null) {
+        if (!URL.isEmpty()) {
             if (!checkNet()) {
                 Toast.makeText(getContext(), "Check Network", Toast.LENGTH_SHORT).show();
             }
@@ -171,6 +178,7 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
 
             } else {
                 long getPosition = savedInstanceState.getLong(KEY);
+                mPlayState = savedInstanceState.getBoolean(SAVE_INSTANT);
                 exoPlayer.release();
                 initializeExpoPlayer(getPosition);
 
@@ -179,13 +187,20 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
             simpleExoPlayer.setVisibility(View.GONE);
         }
 
+        if(mThumbnail.isEmpty())
+        {
+            mImageView.setVisibility(View.GONE);
+        }else {
+            Picasso.with(getContext()).load(Uri.parse(mThumbnail)).into(mImageView);
+        }
+
 
         mStepDescription.setText(description);
 
         if (size) {
             mNextButton.setVisibility(View.VISIBLE);
         }
-        if(getResources().getConfiguration().screenWidthDp >= 600){
+        if (getResources().getConfiguration().screenWidthDp >= 600) {
             mBackButton.setVisibility(View.GONE);
         }
 
@@ -200,11 +215,12 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
     }
 
 
-    public void getStepData(String getDescription, String getURL, boolean sizeOfArray, int getCount) {
+    public void getStepData(String getDescription, String getURL, boolean sizeOfArray, int getCount, String getThumbNail) {
         count = getCount;
         size = sizeOfArray;
         description = getDescription;
         URL = getURL;
+        mThumbnail = getThumbNail;
     }
 
     private void initializeExpoPlayer(long currentPosition) {
@@ -233,6 +249,7 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
         } catch (Exception e) {
             Log.i(TAG, "initializeExpoPlayer: something wrong" + e.toString());
         }
+
     }
 
 
@@ -247,8 +264,10 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (URL != null) {
+        if (!URL.isEmpty()) {
             outState.putLong(KEY, simpleExoPlayer.getPlayer().getCurrentPosition());
+            outState.putBoolean(SAVE_INSTANT, exoPlayer.getPlayWhenReady());
+
         }
     }
 
@@ -287,7 +306,7 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
 
     @OnClick(R.id.Next_fragmentStep)
     public void clickOnButton() {
-        if (URL != null) {
+        if (!URL.isEmpty()) {
             releasePayer();
             mMediaSession.setActive(false);
         }
@@ -295,18 +314,18 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
 
 
     }
+
     @OnClick(R.id.back_fragmentStep)
-    public void clickPreviousButton(){
+    public void clickPreviousButton() {
         mPrevius.clickPreviousButton();
 
     }
 
 
-
     @Override
     public void onStop() {
         super.onStop();
-        if (URL != null) {
+        if (!URL.isEmpty()) {
             chceckIfWork = exoPlayer.getCurrentPosition();
             exoPlayer.stop();
         }
@@ -317,14 +336,15 @@ public class StepFragment extends Fragment implements ExoPlayer.EventListener {
     @Override
     public void onResume() {
         super.onResume();
-        if (URL != null) {
+
+        if (!URL.isEmpty()) {
             if (chceckIfWork != -1) {
                 exoPlayer.seekTo(chceckIfWork);
 
             }
             simpleExoPlayer.setPlayer(exoPlayer);
             exoPlayer.prepare(mediaSource);
-            exoPlayer.setPlayWhenReady(true);
+            exoPlayer.setPlayWhenReady(mPlayState);
 
         }
 

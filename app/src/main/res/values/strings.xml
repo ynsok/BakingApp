@@ -6,5 +6,7 @@
     <string name="recipe_ingredients">Recipe Ingredients</string>
     <string name="skip_to_next">Next</string>
     <string name="skip_to_previous">Back</string>
+    <string name="Retry">Retry</string>
+    <string name="checkConnection">Check Connection and Retry</string>
 
 </resources>
